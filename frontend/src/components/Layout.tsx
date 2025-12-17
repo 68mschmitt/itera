@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Navigation } from './Navigation';
 
 interface LayoutProps {
   children: ReactNode;
@@ -11,19 +12,7 @@ export function Layout({ children }: LayoutProps) {
       display: 'flex',
       flexDirection: 'column',
     }}>
-      <header style={{
-        background: '#2c3e50',
-        color: 'white',
-        padding: '1rem 2rem',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      }}>
-        <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>
-          Itera
-        </h1>
-        <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', opacity: 0.9 }}>
-          Version control for AI prompts
-        </p>
-      </header>
+      <Navigation />
 
       <main style={{
         flex: 1,
@@ -44,7 +33,7 @@ export function Layout({ children }: LayoutProps) {
         borderTop: '1px solid #dee2e6',
       }}>
         <p style={{ margin: 0 }}>
-          Itera v0.1.0 - Phase 0: Foundation
+          Itera v0.1.0 - Phase 1B: Prompt UI & Navigation
         </p>
       </footer>
     </div>

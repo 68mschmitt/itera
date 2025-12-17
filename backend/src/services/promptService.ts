@@ -22,9 +22,12 @@ export interface PromptWithVersions extends Prompt {
 }
 
 // Prepared statements
+const getAllPromptsStmt = db.prepare('SELECT * FROM prompts ORDER BY created_at DESC');
 const getPromptStmt = db.prepare('SELECT * FROM prompts WHERE id = ?');
 const insertPromptStmt = db.prepare('INSERT INTO prompts (name) VALUES (?) RETURNING *');
 const updatePromptDefaultStmt = db.prepare('UPDATE prompts SET default_version_id = ? WHERE id = ? RETURNING *');
+const deletePromptStmt = db.prepare('DELETE FROM prompts WHERE id = ?');
+const deleteVersionsForPromptStmt = db.prepare('DELETE FROM prompt_versions WHERE prompt_id = ?');
 
 const getVersionStmt = db.prepare('SELECT * FROM prompt_versions WHERE id = ?');
 const getVersionsForPromptStmt = db.prepare('SELECT * FROM prompt_versions WHERE prompt_id = ? ORDER BY version_number ASC');
@@ -36,10 +39,45 @@ const insertVersionStmt = db.prepare(`
 `);
 
 /**
+ * Get all prompts with version counts and last modified times
+ */
+export function getAllPrompts(): Array<{
+  id: number;
+  name: string;
+  createdAt: number;
+  versionCount: number;
+  lastModified: number;
+}> {
+  const prompts = getAllPromptsStmt.all() as Prompt[];
+  
+  return prompts.map(prompt => {
+    const versions = getVersionsForPromptStmt.all(prompt.id) as PromptVersion[];
+    const lastModified = versions.length > 0
+      ? Math.max(...versions.map(v => v.created_at))
+      : prompt.created_at;
+    
+    return {
+      id: prompt.id,
+      name: prompt.name,
+      createdAt: prompt.created_at,
+      versionCount: versions.length,
+      lastModified
+    };
+  });
+}
+
+/**
  * Create a new prompt with just a name (no versions yet)
  */
-export function createPrompt(name: string): Prompt {
-  return insertPromptStmt.get(name) as Prompt;
+export function createPrompt(name: string, content?: string): Prompt {
+  const prompt = insertPromptStmt.get(name) as Prompt;
+  
+  // If content is provided, create an initial version
+  if (content) {
+    createVersion(prompt.id, content);
+  }
+  
+  return prompt;
 }
 
 /**
@@ -99,10 +137,10 @@ export const createVersion: (promptId: number, content: string) => PromptVersion
     previousDefaultId
   ) as PromptVersion;
   
-  // 4. Update default pointer
-  updatePromptDefaultStmt.run(newVersion.id, promptId);
-  
-  return newVersion;
+   // 4. Update default pointer
+   updatePromptDefaultStmt.get(newVersion.id, promptId);
+   
+   return newVersion;
 });
 
 /**
@@ -142,4 +180,24 @@ export function getVersionsForDiff(promptId: number, version1Id: number, version
   }
   
   return { version_a: v1, version_b: v2 };
+}
+
+/**
+ * Delete a prompt and all its versions (transactional)
+ */
+export function deletePrompt(promptId: number): void {
+  const transaction = db.transaction(() => {
+    const prompt = getPrompt(promptId);
+    if (!prompt) {
+      throw new Error(`Prompt ${promptId} not found`);
+    }
+    
+    // Delete all versions first
+    deleteVersionsForPromptStmt.run(promptId);
+    
+    // Delete the prompt
+    deletePromptStmt.run(promptId);
+  });
+  
+  transaction();
 }

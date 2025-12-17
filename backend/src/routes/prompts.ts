@@ -5,19 +5,32 @@ import { diffWords } from 'diff';
 const router = Router();
 
 /**
+ * GET /api/prompts
+ * Get all prompts with basic info
+ */
+router.get('/api/prompts', (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const prompts = promptService.getAllPrompts();
+    res.json(prompts);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * POST /api/prompts
  * Create a new prompt
  */
 router.post('/api/prompts', (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name } = req.body;
+    const { name, content } = req.body;
     
     if (!name || typeof name !== 'string') {
       res.status(400).json({ error: 'Name is required and must be a string' });
       return;
     }
     
-    const prompt = promptService.createPrompt(name);
+    const prompt = promptService.createPrompt(name, content);
     res.status(201).json(prompt);
   } catch (error) {
     next(error);
@@ -98,6 +111,26 @@ router.put('/api/prompts/:id/default', (req: Request, res: Response, next: NextF
     
     const prompt = promptService.setDefaultVersion(promptId, version_id);
     res.json(prompt);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * DELETE /api/prompts/:id
+ * Delete a prompt and all its versions
+ */
+router.delete('/api/prompts/:id', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const promptId = parseInt(req.params.id);
+    
+    if (isNaN(promptId)) {
+      res.status(400).json({ error: 'Invalid prompt ID' });
+      return;
+    }
+    
+    promptService.deletePrompt(promptId);
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

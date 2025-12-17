@@ -37,6 +37,14 @@ export interface Prompt {
   default_version_id: number | null;
 }
 
+export interface PromptListItem {
+  id: number;
+  name: string;
+  createdAt: number;
+  versionCount: number;
+  lastModified: number;
+}
+
 export interface PromptVersion {
   id: number;
   prompt_id: number;
@@ -72,14 +80,23 @@ export interface VersionDiff {
 
 // Prompt API Methods
 
-export async function createPrompt(name: string): Promise<Prompt> {
-  const response = await api.post<Prompt>('/api/prompts', { name });
+export async function listPrompts(): Promise<PromptListItem[]> {
+  const response = await api.get<PromptListItem[]>('/api/prompts');
+  return response.data;
+}
+
+export async function createPrompt(name: string, content?: string): Promise<Prompt> {
+  const response = await api.post<Prompt>('/api/prompts', { name, content });
   return response.data;
 }
 
 export async function getPrompt(id: number): Promise<PromptWithVersions> {
   const response = await api.get<PromptWithVersions>(`/api/prompts/${id}`);
   return response.data;
+}
+
+export async function deletePrompt(id: number): Promise<void> {
+  await api.delete(`/api/prompts/${id}`);
 }
 
 export async function createVersion(promptId: number, content: string): Promise<PromptVersion> {
