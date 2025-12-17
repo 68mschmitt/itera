@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import { errorHandler } from './middleware/errorHandler.js';
 import healthRoutes from './routes/health.js';
 import promptRoutes from './routes/prompts.js';
+import runRoutes from './routes/runs.js';
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/', healthRoutes);
 app.use('/', promptRoutes);
+app.use('/', runRoutes);
 
 // Error handling
 app.use(errorHandler);

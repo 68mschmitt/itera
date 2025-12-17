@@ -15,7 +15,7 @@ if (!existsSync(dataDir)) {
 }
 
 // Create database connection
-export const db = new Database(DB_PATH, { verbose: console.log });
+export const db: Database.Database = new Database(DB_PATH, { verbose: console.log });
 
 // Enable foreign keys
 db.pragma('foreign_keys = ON');
@@ -32,7 +32,8 @@ db.exec(`
 // Run migrations
 function runMigrations() {
   const migrations = [
-    '001_initial_schema.sql'
+    '001_initial_schema.sql',
+    '002_runs_table.sql'
   ];
 
   for (const filename of migrations) {

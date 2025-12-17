@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PromptWithVersions, PromptVersion, createVersion, getPrompt, setDefaultVersion as apiSetDefaultVersion } from '../api/client';
+import { PromptWithVersions, PromptVersion, createVersion, getPrompt, setDefaultVersion as apiSetDefaultVersion, listRunsForPrompt, RunListItem } from '../api/client';
 import { PromptEditor } from '../components/PromptEditor';
 import { VersionSelector } from '../components/VersionSelector';
 import { VersionLineage } from '../components/VersionLineage';
 import { DiffModal } from '../components/DiffModal';
+import { RunConfigForm } from '../components/RunConfigForm';
+import { RunList } from '../components/RunList';
+import { RunDetailModal } from '../components/RunDetailModal';
 
 export function PromptPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,9 +19,16 @@ export function PromptPage() {
   const [error, setError] = useState<string | null>(null);
   const [showDiff, setShowDiff] = useState(false);
   const [diffVersionId, setDiffVersionId] = useState<number | null>(null);
+  
+  // Runs state
+  const [runs, setRuns] = useState<RunListItem[]>([]);
+  const [runsTotal, setRunsTotal] = useState(0);
+  const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
+  const [showRunDetail, setShowRunDetail] = useState(false);
 
   useEffect(() => {
     loadPrompt();
+    loadRuns();
   }, [id]);
 
   const loadPrompt = async () => {
@@ -100,6 +110,43 @@ export function PromptPage() {
     setDiffVersionId(null);
   };
 
+  const loadRuns = async () => {
+    if (!id) return;
+    
+    try {
+      const data = await listRunsForPrompt(parseInt(id), { limit: 20 });
+      setRuns(data.runs);
+      setRunsTotal(data.total);
+    } catch (err) {
+      console.error('Failed to load runs:', err);
+    }
+  };
+
+  const handleRunComplete = async (runId: number) => {
+    // Reload runs to show the new run
+    await loadRuns();
+    // Open the detail modal for the new run
+    setSelectedRunId(runId);
+    setShowRunDetail(true);
+  };
+
+  const handleRunClick = (runId: number) => {
+    setSelectedRunId(runId);
+    setShowRunDetail(true);
+  };
+
+  const handleCloseRunDetail = () => {
+    setShowRunDetail(false);
+    setSelectedRunId(null);
+  };
+
+  const handleRerunComplete = async (newRunId: number) => {
+    // Reload runs and show the new run
+    await loadRuns();
+    setSelectedRunId(newRunId);
+    setShowRunDetail(true);
+  };
+
   if (loading) {
     return (
       <div className="page-container">
@@ -172,6 +219,24 @@ export function PromptPage() {
                 ))}
             </div>
           </div>
+
+          {currentVersion && (
+            <div className="run-section">
+              <RunConfigForm
+                promptVersionId={currentVersion.id}
+                promptContent={currentVersion.content}
+                onRunComplete={handleRunComplete}
+              />
+            </div>
+          )}
+
+          <div className="runs-list-section">
+            <div className="runs-header">
+              <h3>Recent Runs</h3>
+              <span className="runs-count">{runsTotal} total</span>
+            </div>
+            <RunList runs={runs} onRunClick={handleRunClick} />
+          </div>
         </div>
 
         <div className="prompt-sidebar">
@@ -197,6 +262,14 @@ export function PromptPage() {
           version1Id={diffVersionId}
           version2Id={currentVersion.id}
           onClose={handleCloseDiff}
+        />
+      )}
+
+      {showRunDetail && selectedRunId && (
+        <RunDetailModal
+          runId={selectedRunId}
+          onClose={handleCloseRunDetail}
+          onRerunComplete={handleRerunComplete}
         />
       )}
     </div>

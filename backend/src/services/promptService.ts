@@ -1,5 +1,4 @@
 import { db } from '../config/database.js';
-import type { Database } from 'better-sqlite3';
 
 // Types
 export interface Prompt {
@@ -79,7 +78,7 @@ export function getPromptWithVersions(promptId: number): PromptWithVersions | un
  * 3. Create new version with parent set to previous default
  * 4. Update prompt's default pointer to new version
  */
-export const createVersion = db.transaction((promptId: number, content: string): PromptVersion => {
+export const createVersion: (promptId: number, content: string) => PromptVersion = db.transaction((promptId: number, content: string): PromptVersion => {
   // 1. Get current prompt state
   const prompt = getPrompt(promptId);
   if (!prompt) {

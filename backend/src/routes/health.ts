@@ -3,7 +3,7 @@ import { checkOllamaHealth, listOllamaModels } from '../services/ollama.js';
 
 const router = Router();
 
-router.get('/health', async (req, res, next) => {
+router.get('/health', async (_req, res, next) => {
   try {
     const ollamaStatus = await checkOllamaHealth();
     
@@ -17,7 +17,7 @@ router.get('/health', async (req, res, next) => {
   }
 });
 
-router.get('/api/models', async (req, res, next) => {
+router.get('/api/models', async (_req, res, next) => {
   try {
     const models = await listOllamaModels();
     res.json({ models });

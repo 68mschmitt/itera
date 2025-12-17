@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import * as promptService from '../services/promptService.js';
-import { diffWords, diffLines } from 'diff';
+import { diffWords } from 'diff';
 
 const router = Router();
 
