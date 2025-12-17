@@ -65,21 +65,22 @@ ollama pull llama3.1:8b
 ```bash
 # Clone repository
 git clone <repo-url>
-cd Itera
+cd itera
 
-# Install backend dependencies
-cd backend
+# Install all dependencies (backend + frontend)
 npm install
 
-# Install frontend dependencies  
-cd ../frontend
-npm install
+# Set up environment files
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 
-# Start development servers
+# Start both servers concurrently
 npm run dev
 ```
 
 Open http://localhost:5173 in your browser.
+
+**Note:** The backend will automatically create the SQLite database and run migrations on first startup.
 
 ---
 
@@ -203,7 +204,7 @@ See detailed phase documentation in `.context/phases/`
 ```env
 PORT=3001
 DATABASE_PATH=./data/itera.db
-OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_BASE_URL_ITERA=http://localhost:11434
 OLLAMA_DEFAULT_MODEL=llama3.1:8b
 CORS_ORIGIN=http://localhost:5173
 ```
@@ -291,7 +292,15 @@ MIT
 
 This is a POC implementation. Contributions, feedback, and ideas welcome!
 
-**Current Status:** Phase 0 (Planning Complete)
+**Current Status:** Phase 0 (Complete) ✅
+
+Phase 0 implementation includes:
+- ✅ Backend Express server with TypeScript
+- ✅ Frontend React + Vite with TypeScript
+- ✅ SQLite database with migration system
+- ✅ Ollama health check integration
+- ✅ Full-stack communication working
+- ✅ npm workspaces for easy development
 
 ---
 

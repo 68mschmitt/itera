@@ -1,0 +1,32 @@
+{
+  "name": "itera",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Version control for AI prompts",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspaces --if-present",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "prompt-engineering",
+    "ai",
+    "llm",
+    "version-control"
+  ],
+  "author": "",
+  "license": "MIT"
+}
