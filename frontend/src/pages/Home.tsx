@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { getHealth, HealthResponse } from '../api/client';
+import { useNavigate } from 'react-router-dom';
+import { getHealth, HealthResponse, createPrompt } from '../api/client';
 
 export function Home() {
+  const navigate = useNavigate();
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [promptName, setPromptName] = useState('');
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     async function fetchHealth() {
@@ -22,9 +26,57 @@ export function Home() {
     fetchHealth();
   }, []);
 
+  const handleCreatePrompt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!promptName.trim()) return;
+    
+    setCreating(true);
+    try {
+      const prompt = await createPrompt(promptName.trim());
+      navigate(`/prompts/${prompt.id}`);
+    } catch (err) {
+      console.error('Failed to create prompt:', err);
+      alert('Failed to create prompt');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div>
       <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Welcome to Itera</h2>
+      
+      <div style={{
+        background: 'white',
+        border: '1px solid #dee2e6',
+        borderRadius: '8px',
+        padding: '1.5rem',
+        marginBottom: '1.5rem',
+      }}>
+        <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Create New Prompt</h3>
+        <form onSubmit={handleCreatePrompt} style={{ display: 'flex', gap: '0.5rem' }}>
+          <input
+            type="text"
+            value={promptName}
+            onChange={(e) => setPromptName(e.target.value)}
+            placeholder="Enter prompt name (e.g., Support Agent)"
+            style={{
+              flex: 1,
+              padding: '0.5rem',
+              border: '1px solid #dee2e6',
+              borderRadius: '4px',
+              fontSize: '0.875rem',
+            }}
+          />
+          <button
+            type="submit"
+            disabled={creating || !promptName.trim()}
+            className="btn btn-primary"
+          >
+            {creating ? 'Creating...' : 'Create Prompt'}
+          </button>
+        </form>
+      </div>
       
       <div style={{
         background: 'white',
@@ -100,19 +152,24 @@ export function Home() {
       </div>
       
       <div style={{
-        background: '#e7f3ff',
-        border: '1px solid #b3d9ff',
+        background: '#d4edda',
+        border: '1px solid #c3e6cb',
         borderRadius: '8px',
         padding: '1.5rem',
       }}>
-        <h3 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Next Steps</h3>
+        <h3 style={{ marginTop: 0, marginBottom: '0.5rem' }}>✓ Phase 1 Complete: Prompt Versioning</h3>
         <ul style={{ marginBottom: 0, paddingLeft: '1.5rem' }}>
-          <li>Phase 0 (Foundation) is complete!</li>
-          <li>Backend and frontend are communicating</li>
-          <li>SQLite database is initialized</li>
-          <li>Ollama integration is {health?.ollama.status === 'connected' ? 'working' : 'pending'}</li>
-          <li>Ready to implement Phase 1: Prompt Versioning</li>
+          <li>Create prompts with names and content</li>
+          <li>Auto-incrementing versions (v1, v2, v3...)</li>
+          <li>Parent tracking for version lineage</li>
+          <li>View diffs between any two versions</li>
+          <li>Rollback to previous versions</li>
+          <li>Visual version history and lineage tree</li>
+          <li>All operations are transactional and thread-safe</li>
         </ul>
+        <p style={{ marginTop: '1rem', marginBottom: 0, fontWeight: 500, color: '#155724' }}>
+          Ready for Phase 2: Reproducible Runs with Ollama
+        </p>
       </div>
     </div>
   );

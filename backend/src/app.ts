@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/errorHandler.js';
 import healthRoutes from './routes/health.js';
+import promptRoutes from './routes/prompts.js';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/', healthRoutes);
+app.use('/', promptRoutes);
 
 // Error handling
 app.use(errorHandler);
