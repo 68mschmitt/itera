@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface PromptEditorProps {
   content: string;
@@ -10,11 +10,16 @@ export function PromptEditor({ content: initialContent, onSave, readOnly = false
   const [content, setContent] = useState(initialContent);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const prevInitialContentRef = useRef(initialContent);
 
   // Update content when initialContent prop changes (e.g., when switching versions)
+  // Only reset if the value actually changed to prevent interrupting user input
   useEffect(() => {
-    setContent(initialContent);
-    setIsDirty(false);
+    if (prevInitialContentRef.current !== initialContent) {
+      setContent(initialContent);
+      setIsDirty(false);
+      prevInitialContentRef.current = initialContent;
+    }
   }, [initialContent]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

@@ -40,12 +40,29 @@ export function PromptPage() {
       const data = await getPrompt(parseInt(id));
       setPrompt(data);
       
-      // Set current version to default if available
+      // Set current version to default if available, otherwise use the latest version
       if (data.default_version_id) {
         const defaultVersion = data.versions.find(v => v.id === data.default_version_id);
         if (defaultVersion) {
           setCurrentVersion(defaultVersion);
         }
+      } else if (data.versions.length > 0) {
+        // If no default version but versions exist, select the latest one
+        const latestVersion = data.versions.reduce((latest, current) => 
+          current.version_number > latest.version_number ? current : latest
+        );
+        setCurrentVersion(latestVersion);
+      } else {
+        // No versions exist yet - set currentVersion to a placeholder so user can create first version
+        setCurrentVersion({
+          id: 0,
+          prompt_id: data.id,
+          version_number: 0,
+          content: '',
+          parent_version_id: null,
+          created_at: Date.now(),
+          is_default: false
+        });
       }
     } catch (err) {
       console.error('Failed to load prompt:', err);
@@ -180,7 +197,7 @@ export function PromptPage() {
           <PromptEditor
             content={currentVersion?.content || ''}
             onSave={handleSaveVersion}
-            readOnly={!currentVersion}
+            readOnly={false}
           />
           
           <div className="version-history-section">
